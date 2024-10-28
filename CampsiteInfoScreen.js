@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { View, Modal, Button, FlatList, StyleSheet, Text } from 'react-native';
 import { Rating, Input } from 'react-native-elements';
-import RenderCampsite from './RenderCampsite';
-import { useDispatch } from 'react-redux';
+import RenderCampsite from '../features/campsites/RenderCampsite';
+import { useDispatch, useSelector } from 'react-redux';
 import { postComment } from '../features/comments/commentsSlice'; 
+import { toggleFavorite } from '../features/favorites/favoritesSlice';
 
-const CampsiteInfoScreen = ({ campsite, comments, renderCommentItem }) => {
+const CampsiteInfoScreen = ({ route }) => {
+    const { campsite } = route.params;
+    const comments = useSelector((state) => state.comments);
+    const favorites = useSelector((state) => state.favorites);
+
     const [showModal, setShowModal] = useState(false);
     const [rating, setRating] = useState(5);
     const [author, setAuthor] = useState('');
@@ -29,22 +34,52 @@ const CampsiteInfoScreen = ({ campsite, comments, renderCommentItem }) => {
         setText('');
     };
 
+    const renderCommentItem = ({ item }) => {
+        return (
+            <View style={styles.commentItem}>
+                <Text style={{ fontSize: 14 }}>{item.text}</Text>
+                <Rating
+                    startingValue={item.rating}
+                    imageSize={10}
+                    readonly
+                    style={{ alignItems: 'flex-start', paddingVertical: '5%' }}
+                />
+                <Text style={{ fontSize: 12 }}>
+                    {`-- ${item.author}, ${item.date}`}
+                </Text>
+            </View>
+        );
+    };
+
     return (
         <>
-            <RenderCampsite 
-                campsite={campsite}
-                onShowModal={() => setShowModal(true)}
-            />
-
             <FlatList
-                data={comments}
+                data={comments.commentsArray.filter(
+                    (comment) => comment.campsiteId === campsite.id
+                )}
                 renderItem={renderCommentItem}
                 keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={{
+                    marginHorizontal: 20,
+                    paddingVertical: 20
+                }}
+                ListHeaderComponent={
+                    <>
+                        <RenderCampsite
+                            campsite={campsite}
+                            isFavorite={favorites.includes(campsite.id)}
+                            markFavorite={() =>
+                                dispatch(toggleFavorite(campsite.id))
+                            }
+                            onShowModal={() => setShowModal(!showModal)}
+                        />
+                        <Text style={styles.commentsTitle}>Comments</Text>
+                    </>
+                }
             />
-
             <Modal
                 animationType='slide'
-                transparent={true}
+                transparent={false}
                 visible={showModal}
                 onRequestClose={() => setShowModal(false)}
             >
@@ -101,6 +136,20 @@ const CampsiteInfoScreen = ({ campsite, comments, renderCommentItem }) => {
 };
 
 const styles = StyleSheet.create({
+    commentsTitle: {
+        textAlign: 'center',
+        backgroundColor: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#43484D',
+        padding: 10,
+        paddingTop: 30
+    },
+    commentItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: '#fff'
+    },
     modal: {
         justifyContent: 'center',
         margin: 20
