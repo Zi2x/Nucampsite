@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { View, Modal, Button, FlatList, StyleSheet, Text } from 'react-native';
-import { Rating, Input } from 'react-native-elements';
+import { useState } from 'react';
+import { Button, FlatList, Modal, StyleSheet, Text, View } from 'react-native';
+import { Input, Rating } from 'react-native-elements';
+import { useSelector, useDispatch } from 'react-redux';
 import RenderCampsite from '../features/campsites/RenderCampsite';
-import { useDispatch, useSelector } from 'react-redux';
-import { postComment } from '../features/comments/commentsSlice'; 
 import { toggleFavorite } from '../features/favorites/favoritesSlice';
+import { postComment } from '../features/comments/commentsSlice';
+import * as Animatable from 'react-native-animatable';
 
 const CampsiteInfoScreen = ({ route }) => {
     const { campsite } = route.params;
     const comments = useSelector((state) => state.comments);
     const favorites = useSelector((state) => state.favorites);
-
     const [showModal, setShowModal] = useState(false);
     const [rating, setRating] = useState(5);
     const [author, setAuthor] = useState('');
     const [text, setText] = useState('');
-    const dispatch = useDispatch();  
+    const dispatch = useDispatch();
 
     const handleSubmit = () => {
         const newComment = {
@@ -24,8 +24,8 @@ const CampsiteInfoScreen = ({ route }) => {
             text,
             campsiteId: campsite.id
         };
-        dispatch(postComment(newComment));  
-        setShowModal(false);  
+        dispatch(postComment(newComment));
+        setShowModal(!showModal);
     };
 
     const resetForm = () => {
@@ -52,7 +52,7 @@ const CampsiteInfoScreen = ({ route }) => {
     };
 
     return (
-        <>
+        <Animatable.View animation='fadeInUp' duration={2000} delay={1000}>
             <FlatList
                 data={comments.commentsArray.filter(
                     (comment) => comment.campsiteId === campsite.id
@@ -81,7 +81,7 @@ const CampsiteInfoScreen = ({ route }) => {
                 animationType='slide'
                 transparent={false}
                 visible={showModal}
-                onRequestClose={() => setShowModal(false)}
+                onRequestClose={() => setShowModal(!showModal)}
             >
                 <View style={styles.modal}>
                     <Rating
@@ -91,15 +91,13 @@ const CampsiteInfoScreen = ({ route }) => {
                         onFinishRating={(rating) => setRating(rating)}
                         style={{ paddingVertical: 10 }}
                     />
-
                     <Input
                         placeholder='Author'
                         leftIcon={{ type: 'font-awesome', name: 'user-o' }}
                         leftIconContainerStyle={{ paddingRight: 10 }}
-                        onChangeText={(text) => setAuthor(text)}
+                        onChangeText={(author) => setAuthor(author)}
                         value={author}
                     />
-
                     <Input
                         placeholder='Comment'
                         leftIcon={{ type: 'font-awesome', name: 'comment-o' }}
@@ -107,31 +105,29 @@ const CampsiteInfoScreen = ({ route }) => {
                         onChangeText={(text) => setText(text)}
                         value={text}
                     />
-
                     <View style={{ margin: 10 }}>
                         <Button
-                            title='Submit'
-                            color='#5637DD'
                             onPress={() => {
                                 handleSubmit();
                                 resetForm();
                             }}
+                            color='#5637DD'
+                            title='Submit'
                         />
                     </View>
-
                     <View style={{ margin: 10 }}>
                         <Button
-                            title='Cancel'
-                            color='#808080'
                             onPress={() => {
+                                setShowModal(!showModal);
                                 resetForm();
-                                setShowModal(false);
                             }}
+                            color='#808080'
+                            title='Cancel'
                         />
                     </View>
                 </View>
             </Modal>
-        </>
+        </Animatable.View>
     );
 };
 
