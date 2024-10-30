@@ -5,9 +5,3 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 
 module.exports = config;
-// metro.config.js
-module.exports = {
-    resolver: {
-      blacklistRE: /node_modules\/.*\/node_modules/,
-    },
-  };
